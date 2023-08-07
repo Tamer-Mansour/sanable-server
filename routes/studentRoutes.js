@@ -10,6 +10,8 @@ const {
   updatePayment,
   getPaymentById,
   deletePayment,
+  searchStudents,
+  searchPayments,
 } = require("../controllers/studentController");
 
 const router = express.Router();
@@ -39,5 +41,10 @@ router.get("/:studentId/payments/:paymentId", getPaymentById);
 // Delete a payment for a student
 router.delete("/:studentId/payments/:paymentId", deletePayment);
 
+// search for a students
+router.get("/search/students", searchStudents);
+
+// search for payment for a student
+router.get("/search/payments", searchPayments);
 
 module.exports = router;

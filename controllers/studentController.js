@@ -215,3 +215,34 @@ exports.deletePayment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// Search for students based on attributes
+exports.searchStudents = async (req, res) => {
+  try {
+    const { query, page = 1, perPage = 10 } = req.query;
+    const options = {
+      skip: (page - 1) * perPage,
+      limit: parseInt(perPage),
+    };
+
+    let searchQuery = {
+      $or: [
+        { first_name: { $regex: query, $options: "i" } },
+        { second_name: { $regex: query, $options: "i" } },
+        { third_name: { $regex: query, $options: "i" } },
+        { forth_name: { $regex: query, $options: "i" } },
+        { class_name: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { father_phone_number: { $regex: query, $options: "i" } },
+        { mother_phone_number: { $regex: query, $options: "i" } },
+      ],
+    };
+
+    const students = await Student.find(searchQuery, null, options);
+
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
