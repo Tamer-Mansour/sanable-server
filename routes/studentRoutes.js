@@ -22,12 +22,16 @@ const {
   getAllIntroductoryStudents,
   importOrchardStudentsToNewYear,
   getIntroductoryStudentsInAcademicYear,
+  importStudentsFromExcel,
+  upload,
 } = require("../controllers/studentController");
 
 const router = express.Router();
 
 router.post("/students", createStudent);
 router.get("/students", getStudents);
+router.post('/import-students', upload.single('file'), importStudentsFromExcel);
+
 // Get all Orchard students with pagination
 router.get("/students/orchard", getAllOrchardStudents);
 

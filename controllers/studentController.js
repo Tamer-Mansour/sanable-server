@@ -1,5 +1,8 @@
 const { Student, Payment, AcademicYear } = require("../models/Student");
 
+
+
+
 // Create a new academic year
 exports.createAcademicYear = async (req, res) => {
   try {
@@ -559,6 +562,42 @@ exports.searchStudents = async (req, res) => {
     const students = await Student.find(searchQuery, null, options);
 
     res.json(students);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+
+const multer = require('multer');
+const xlsx = require('xlsx');
+const path = require('path');
+const fs = require('fs'); // Import the fs module
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads'); // Upload directory
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage });
+exports.upload = upload;
+
+exports.importStudentsFromExcel = async (req, res) => {
+  try {
+    const workbook = xlsx.readFile(req.file.path);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const studentData = xlsx.utils.sheet_to_json(sheet);
+
+    // Create new Student documents for each student in the Excel sheet
+    const newStudents = await Student.create(studentData);
+
+    fs.unlinkSync(req.file.path);
+
+    res.json({ message: 'Students imported from Excel sheet successfully', newStudents });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
