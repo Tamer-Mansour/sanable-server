@@ -21,7 +21,7 @@ const studentSchema = new mongoose.Schema({
   father_phone_number: { type: String, required: true },
   mother_phone_number: { type: String, required: true },
   fee: { type: Number, default: 0, required: true },
-  payments: [paymentSchema],
+  payments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Payment' }],
 });
 
 const academicYearSchema = new mongoose.Schema({

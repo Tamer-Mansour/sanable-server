@@ -421,14 +421,15 @@ exports.createPayment = async (req, res) => {
 
     // Check if the payment amount exceeds the student's fee
     if (amount > student.fee) {
-      return res
-        .status(400)
-        .json({ error: "Payment amount exceeds student's fee" });
+      return res.status(400).json({ error: "Payment amount exceeds student's fee" });
     }
 
     // Create a payment
     const payment = new Payment({ student: studentId, amount, comments });
     await payment.save();
+
+    // Add payment's ID to student's payments array
+    student.payments.push(payment._id);
 
     // Update student's fee
     student.fee -= amount;
@@ -439,6 +440,7 @@ exports.createPayment = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Get all payments for a student with pagination
 exports.getPaymentsForStudent = async (req, res) => {
@@ -529,14 +531,19 @@ exports.deletePayment = async (req, res) => {
     student.fee += payment.amount;
     await student.save();
 
+    // Remove the payment's ID from the student's payments array
+    student.payments = student.payments.filter(pid => !pid.equals(paymentId));
+    await student.save();
+
     // Delete the payment
-    await payment.remove();
+    await Payment.deleteOne({ _id: paymentId });
 
     res.json({ message: "Payment deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 // Search for students based on attributes
 exports.searchStudents = async (req, res) => {
