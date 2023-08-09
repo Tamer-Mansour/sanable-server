@@ -16,18 +16,23 @@ const {
   deleteAcademicYear,
   addStudentsToAcademicYear,
   removeStudentsFromAcademicYear,
-  getStudentsInCurrentYear,
-  getOrchardStudentsInCurrentYear,
+  getStudentsInAcademicYear,
+  getOrchardStudentsInAcademicYear,
   getAllOrchardStudents,
   getAllIntroductoryStudents,
   importOrchardStudentsToNewYear,
-  getIntroductoryStudentsInCurrentYear,
+  getIntroductoryStudentsInAcademicYear,
 } = require("../controllers/studentController");
 
 const router = express.Router();
 
 router.post("/students", createStudent);
 router.get("/students", getStudents);
+// Get all Orchard students with pagination
+router.get("/students/orchard", getAllOrchardStudents);
+
+// Get all Introductory students with pagination
+router.get("/students/introductory", getAllIntroductoryStudents);
 router.post("/students/:studentId/payments", createPayment);
 
 // Get a single student by ID
@@ -76,19 +81,12 @@ router.post(
 );
 
 /// Get all students in the current academic year with pagination
-router.get("/students/:yearId", getStudentsInCurrentYear);
+router.get("/academic-years/:academicYearId/students", getStudentsInAcademicYear);
 
 // Get all Orchard students in the current academic year with pagination
-router.get("/students/orchard/:yearId", getOrchardStudentsInCurrentYear);
+router.get("/academic-years/:academicYearId/orchard-students", getOrchardStudentsInAcademicYear);
 
-router.get("/students/introductory/:yearId", getIntroductoryStudentsInCurrentYear);
-
-// Get all Orchard students with pagination
-router.get("/students/orchard", getAllOrchardStudents);
-
-// Get all Introductory students with pagination
-router.get("/students/introductory", getAllIntroductoryStudents);
-
+router.get("/academic-years/:academicYearId/introductory-students", getIntroductoryStudentsInAcademicYear);
 
 // Import Orchard students to a new academic year
 router.post(
