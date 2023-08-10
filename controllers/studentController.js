@@ -1,8 +1,5 @@
 const { Student, Payment, AcademicYear } = require("../models/Student");
 
-
-
-
 // Create a new academic year
 exports.createAcademicYear = async (req, res) => {
   try {
@@ -62,34 +59,25 @@ exports.deleteAcademicYear = async (req, res) => {
 exports.addStudentsToAcademicYear = async (req, res) => {
   try {
     const { academicYearId, studentIds } = req.body;
-
-    // Find the academic year document by its ID
     const academicYear = await AcademicYear.findById(academicYearId);
 
     if (!academicYear) {
       return res.status(404).json({ error: "Academic year not found" });
     }
-
-    // Create an array to store the new student objects
     const newStudents = [];
 
-    // Loop through the studentIds array and create new student objects
     for (const studentId of studentIds) {
-      // Retrieve the student document by its ID
       const student = await Student.findById(studentId);
 
       if (!student) {
-        // If the student with the given ID is not found, skip adding it to the academic year
         continue;
       }
 
-      // Check if the student is already in the academic year's students array
       if (
         !academicYear.students.some((existingStudent) =>
           existingStudent.equals(student._id)
         )
       ) {
-        // Add the student to the newStudents array
         newStudents.push(student);
       }
     }
@@ -100,12 +88,9 @@ exports.addStudentsToAcademicYear = async (req, res) => {
       });
     }
 
-    // Push the newStudents array into the students array of the academic year document
     academicYear.students.push(...newStudents);
 
-    // Save the updated academic year document
     await academicYear.save();
-    // Update the academicYear field in each new student document
     for (const student of newStudents) {
       student.academicYear = academicYear._id;
       await student.save();
@@ -121,26 +106,20 @@ exports.addStudentsToAcademicYear = async (req, res) => {
 exports.removeStudentsFromAcademicYear = async (req, res) => {
   try {
     const { academicYearId, studentIds } = req.body;
-
-    // Find the academic year document by its ID
     const academicYear = await AcademicYear.findById(academicYearId);
 
     if (!academicYear) {
       return res.status(404).json({ error: "Academic year not found" });
     }
 
-    // Convert all studentIds to strings for consistent comparison
     const studentIdsAsStrings = studentIds.map((id) => id.toString());
 
-    // Remove the specified student IDs from the academic year's students array
     academicYear.students = academicYear.students.filter(
       (studentId) => !studentIdsAsStrings.includes(studentId.toString())
     );
 
-    // Save the updated academic year document
     await academicYear.save();
 
-    // Clear the academicYear field for the removed students
     await Student.updateMany(
       { _id: { $in: studentIds } },
       { academicYear: null }
@@ -159,8 +138,9 @@ exports.getStudentsInAcademicYear = async (req, res) => {
   try {
     const { academicYearId } = req.params;
 
-    // Find the academic year document by its ID and populate the 'students' field
-    const academicYear = await AcademicYear.findById(academicYearId).populate("students");
+    const academicYear = await AcademicYear.findById(academicYearId).populate(
+      "students"
+    );
 
     if (!academicYear) {
       return res.status(404).json({ error: "Academic year not found" });
@@ -174,21 +154,20 @@ exports.getStudentsInAcademicYear = async (req, res) => {
   }
 };
 
-// Get all Orchard students in the academic year with pagination
 exports.getOrchardStudentsInAcademicYear = async (req, res) => {
   try {
     const { academicYearId } = req.params;
 
-    // Find the academic year document by its ID and populate the 'students' field
-    const academicYear = await AcademicYear.findById(academicYearId).populate("students");
+    const academicYear = await AcademicYear.findById(academicYearId).populate(
+      "students"
+    );
 
     if (!academicYear) {
       return res.status(404).json({ error: "Academic year not found" });
     }
 
-    // Filter students to include only those with class_level 'Orchard'
     const orchardStudents = academicYear.students.filter(
-      (student) => student.class_level === 'Orchard'
+      (student) => student.class_level === "Orchard"
     );
 
     res.json(orchardStudents);
@@ -197,22 +176,20 @@ exports.getOrchardStudentsInAcademicYear = async (req, res) => {
   }
 };
 
-
-// Get all Introductory students in the academic year with pagination
 exports.getIntroductoryStudentsInAcademicYear = async (req, res) => {
   try {
     const { academicYearId } = req.params;
 
-    // Find the academic year document by its ID and populate the 'students' field
-    const academicYear = await AcademicYear.findById(academicYearId).populate("students");
+    const academicYear = await AcademicYear.findById(academicYearId).populate(
+      "students"
+    );
 
     if (!academicYear) {
       return res.status(404).json({ error: "Academic year not found" });
     }
 
-    // Filter students to include only those with class_level 'Introductory'
     const introductoryStudents = academicYear.students.filter(
-      (student) => student.class_level === 'Introductory'
+      (student) => student.class_level === "Introductory"
     );
 
     res.json(introductoryStudents);
@@ -221,15 +198,14 @@ exports.getIntroductoryStudentsInAcademicYear = async (req, res) => {
   }
 };
 
-// Get all Orchard students with pagination
 exports.getAllOrchardStudents = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Current page (default: 1)
-    const perPage = parseInt(req.query.perPage) || 10; // Items per page (default: 10)
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
 
     const skip = (page - 1) * perPage;
 
-    const orchardStudents = await Student.find({ class_level: 'Orchard' })
+    const orchardStudents = await Student.find({ class_level: "Orchard" })
       .skip(skip)
       .limit(perPage);
 
@@ -239,16 +215,17 @@ exports.getAllOrchardStudents = async (req, res) => {
   }
 };
 
-
 // Get all Introductory students with pagination
 exports.getAllIntroductoryStudents = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Current page (default: 1)
-    const perPage = parseInt(req.query.perPage) || 10; // Items per page (default: 10)
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
 
     const skip = (page - 1) * perPage;
 
-    const introductoryStudents = await Student.find({ class_level: 'Introductory' })
+    const introductoryStudents = await Student.find({
+      class_level: "Introductory",
+    })
       .skip(skip)
       .limit(perPage);
 
@@ -258,7 +235,6 @@ exports.getAllIntroductoryStudents = async (req, res) => {
   }
 };
 
-// Import Orchard students to a new academic year
 exports.importOrchardStudentsToNewYear = async (req, res) => {
   try {
     const { sourceYearId, targetYearId } = req.body;
@@ -273,20 +249,17 @@ exports.importOrchardStudentsToNewYear = async (req, res) => {
       return res.status(404).json({ error: "Target academic year not found" });
     }
 
-    // Find Orchard students in the source academic year
     const orchardStudents = await Student.find({
       academicYear: sourceYearId,
       class_level: "Orchard level",
     });
 
-    // Update each Orchard student's academicYear field
     const studentIds = orchardStudents.map((student) => student._id);
     await Student.updateMany(
       { _id: { $in: studentIds } },
       { academicYear: targetYearId }
     );
 
-    // Update the target academic year's students array
     targetYear.students = [...targetYear.students, ...studentIds];
     await targetYear.save();
 
@@ -297,7 +270,6 @@ exports.importOrchardStudentsToNewYear = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-// ------------------------------------------
 
 // Create a new student
 exports.createStudent = async (req, res) => {
@@ -305,7 +277,6 @@ exports.createStudent = async (req, res) => {
     const studentData = req.body;
     const student = new Student(studentData);
 
-    // Check if an academicYear is specified
     if (student.academicYear) {
       const academicYear = await AcademicYear.findById(student.academicYear);
       if (!academicYear) {
@@ -342,7 +313,6 @@ exports.getStudentById = async (req, res) => {
   try {
     const { studentId } = req.params;
 
-    // Find the student document by its ID
     const student = await Student.findById(studentId);
 
     if (!student) {
@@ -365,8 +335,8 @@ exports.updateStudent = async (req, res) => {
       studentId,
       studentData,
       {
-        new: true, // Return the updated document
-        runValidators: true, // Run model validations on the update
+        new: true,
+        runValidators: true,
       }
     );
 
@@ -403,29 +373,32 @@ exports.deleteStudent = async (req, res) => {
 exports.createPayment = async (req, res) => {
   try {
     const { studentId } = req.params;
-    const { amount, comments } = req.body;
+    const { amount, amountInWords, comments } = req.body; // Include amountInWords
 
-    // Find the student by ID
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Check if the payment amount exceeds the student's fee
     if (amount > student.fee) {
       return res
         .status(400)
         .json({ error: "Payment amount exceeds student's fee" });
     }
 
-    // Create a payment
-    const payment = new Payment({ student: studentId, amount, comments });
+    // Calculate remaining amount
+    const remainingAmount = student.fee - amount;
+
+    const payment = new Payment({
+      student: studentId,
+      amount,
+      amountInWords,
+      comments,
+      remainingAmount,
+    }); // Include amountInWords and remainingAmount
     await payment.save();
 
-    // Add payment's ID to student's payments array
     student.payments.push(payment._id);
-
-    // Update student's fee
     student.fee -= amount;
     await student.save();
 
@@ -454,29 +427,26 @@ exports.getPaymentsForStudent = async (req, res) => {
 exports.updatePayment = async (req, res) => {
   try {
     const { studentId, paymentId } = req.params;
-    const { amount, comments } = req.body;
+    const { amount, amountInWords, comments } = req.body; // Include amountInWords
 
-    // Find the student by ID
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Find the payment by ID
     const payment = await Payment.findById(paymentId);
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    // Calculate the difference between the new payment amount and the original payment amount
     const paymentDiff = amount - payment.amount;
 
-    // Update the payment
     payment.amount = amount;
+    payment.amountInWords = amountInWords; // Update amountInWords
     payment.comments = comments;
     await payment.save();
 
-    // Update student's fee by subtracting the paymentDiff
+    // Update remaining amount
     student.fee -= paymentDiff;
     await student.save();
 
@@ -490,8 +460,6 @@ exports.updatePayment = async (req, res) => {
 exports.getPaymentById = async (req, res) => {
   try {
     const { studentId, paymentId } = req.params;
-
-    // Find the payment by ID
     const payment = await Payment.findById(paymentId);
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
@@ -508,27 +476,22 @@ exports.deletePayment = async (req, res) => {
   try {
     const { studentId, paymentId } = req.params;
 
-    // Find the student by ID
     const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Find the payment by ID
     const payment = await Payment.findById(paymentId);
     if (!payment) {
       return res.status(404).json({ error: "Payment not found" });
     }
 
-    // Update student's fee
     student.fee += payment.amount;
     await student.save();
 
-    // Remove the payment's ID from the student's payments array
     student.payments = student.payments.filter((pid) => !pid.equals(paymentId));
     await student.save();
 
-    // Delete the payment
     await Payment.deleteOne({ _id: paymentId });
 
     res.json({ message: "Payment deleted successfully" });
@@ -567,16 +530,14 @@ exports.searchStudents = async (req, res) => {
   }
 };
 
-
-const multer = require('multer');
-const xlsx = require('xlsx');
-const path = require('path');
-const fs = require('fs'); // Import the fs module
-
+const multer = require("multer");
+const xlsx = require("xlsx");
+const path = require("path");
+const fs = require("fs");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads'); // Upload directory
+    cb(null, "uploads");
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
@@ -591,13 +552,14 @@ exports.importStudentsFromExcel = async (req, res) => {
     const workbook = xlsx.readFile(req.file.path);
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const studentData = xlsx.utils.sheet_to_json(sheet);
-
-    // Create new Student documents for each student in the Excel sheet
     const newStudents = await Student.create(studentData);
 
     fs.unlinkSync(req.file.path);
 
-    res.json({ message: 'Students imported from Excel sheet successfully', newStudents });
+    res.json({
+      message: "Students imported from Excel sheet successfully",
+      newStudents,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
